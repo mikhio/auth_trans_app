@@ -15,7 +15,7 @@ class UserCreate(BaseModel):
 
     # Дополнительный пример использования валидатора
     @field_validator('password')
-    def validate_password(cls, value):
+    def validate_password(cls, value): # pylint: disable=no-self-argument
         """ Проверка пароля на длину """
 
         if len(value) < 8:
@@ -32,8 +32,20 @@ class UserOut(BaseModel):
     created_at: datetime
 
     model_config = {
-        "from_attributes": True
+        "from_attributes": True 
     }
+
+class Username(BaseModel):
+    """ Схема имени пользователя """
+
+    username: str
+
+class UserFound(BaseModel):
+    """ Схема найденного пользователя """
+
+    id: int
+    username: str
+
 
 class Token(BaseModel):
     """ Схема токена """

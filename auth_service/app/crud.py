@@ -28,9 +28,13 @@ async def create_user(db: AsyncSession, user: schemas.UserCreate) -> models.User
 
     hashed_password = pwd_context.hash(user.password)
 
-    db_user = models.User(username=user.username, email=user.email, hashed_password=hashed_password)
+    db_user = models.User(
+        username=user.username,
+        email=user.email,
+        hashed_password=hashed_password)
 
     db.add(db_user)
+
     await db.commit()
     await db.refresh(db_user)
 
@@ -48,12 +52,13 @@ async def get_user(db: AsyncSession, user_id: int) -> models.User | None:
 
     return result.scalars().first()
 
-async def update_password(db: AsyncSession, user: models.User, new_password: str) -> models.User: 
+async def update_password(db: AsyncSession, user: models.User, new_password: str) -> models.User:
     """ Обновляет пароль """
 
     user.hashed_password = pwd_context.hash(new_password)
 
     db.add(user)
+
     await db.commit()
     await db.refresh(user)
 

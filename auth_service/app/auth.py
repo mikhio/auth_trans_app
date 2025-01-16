@@ -1,6 +1,5 @@
 """ Модуль аутентификации"""
 
-from typing import Generator
 from datetime import datetime, timedelta, timezone
 from jose import JWTError, jwt
 
@@ -50,7 +49,7 @@ async def get_current_user(
 
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        logger.info("Payload sub: %s", payload.get("sub")) 
+        logger.info("Payload sub: %s", payload.get("sub"))
         user_id: int = int(payload.get("sub"))
 
         if user_id is None:

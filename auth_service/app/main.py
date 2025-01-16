@@ -28,6 +28,22 @@ async def register(user: schemas.UserCreate, db: AsyncSession = Depends(get_db))
 
     return db_user
 
+@app.post("/check-user", response_model=schemas.UserFound)
+async def check_user(user: schemas.Username, db: AsyncSession = Depends(get_db)) -> models.User:
+    """ Регистрация пользователя """
+
+    db_user = await crud.get_user_by_username(db, username=user.username)
+    logger.info("Поиск пользователя %s", user.username)
+
+    if not db_user:
+        logger.warning("Пользователь %s не найден", user.username)
+
+        raise HTTPException(status_code=400, detail="Пользователь не найден")
+
+    logger.info("Пользователь %s найден", db_user.username)
+
+    return db_user
+
 @app.post("/token", response_model=schemas.Token)
 async def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
