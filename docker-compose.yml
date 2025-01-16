@@ -9,7 +9,7 @@ services:
     volumes:
       - auth_db_data:/var/lib/postgresql/data
     ports:
-      - "${AUTH_POSTGRES_PORT}:5432"
+      - "5432:${AUTH_POSTGRES_PORT}"
     networks:
       - app-network
   
@@ -21,55 +21,76 @@ services:
       - auth_db 
     env_file:
       - .env
+    volumes:
+      - ./auth_service/alembic/versions:/app/alembic/versions
     networks:
       - app-network
-    command: ["/bin/sh", "-c", "alembic stamp head && alembic revision --autogenerate -m \"Migration\" && alembic upgrade head && alembic stamp head"]
-
-  # transaction_db:
-  #   image: postgres:15
-  #   container_name: transaction_db
-  #   environment:
-  #     POSTGRES_USER: trans_user
-  #     POSTGRES_PASSWORD: trans_pass
-  #     POSTGRES_DB: transaction_db
-  #   volumes:
-  #     - transaction_db_data:/var/lib/postgresql/data
-  #   ports:
-  #     - "5433:5432"
-  #   networks:
-  #     - app-network
+    command: ["/bin/sh", "-c", "alembic revision --autogenerate -m \"Migration\" && alembic upgrade head"]
 
   auth_service:
     build:
       context: ./auth_service
     platform: linux/amd64
-    container_name: auth_service
+    container_name: ${AUTH_SERVICE_HOST}
     env_file:
       - .env
     depends_on:
       - auth_db
       - auth_migrate
     volumes:
-      - ./logs/auth_service:${AUTH_LOGS_DIR}
+      - ./logs/auth_service:${LOGS_DIR}
     ports:
-      - "8000:8000"
+      - "${AUTH_SERVICE_PORT}:${AUTH_SERVICE_PORT}"
     networks:
       - app-network
-    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "${AUTH_SERVICE_PORT}"]
 
-  # transaction_service:
-  #   build:
-  #     context: ./transaction_service
-  #   container_name: transaction_service
-  #   env_file:
-  #     - ./transaction_service/.env
-  #   depends_on:
-  #     - transaction_db
-  #     - auth_service
-  #   ports:
-  #     - "8001:8001"
-  #   networks:
-  #     - app-network
+
+  transaction_db:
+    image: postgres:15
+    container_name: ${TRANS_DATABASE_HOST} 
+    environment:
+      POSTGRES_USER: ${TRANS_POSTGRES_USER} 
+      POSTGRES_PASSWORD: ${TRANS_POSTGRES_PASSWORD} 
+      POSTGRES_DB: ${TRANS_POSTGRES_DB} 
+    volumes:
+      - transaction_db_data:/var/lib/postgresql/data
+    ports:
+      - "5433:${TRANS_POSTGRES_PORT}"
+    networks:
+      - app-network
+
+  transaction_migrate:
+    build:
+      context: ./transaction_service 
+    platform: linux/amd64
+    depends_on:
+      - transaction_db 
+    env_file:
+      - .env
+    volumes:
+      - ./transaction_service/alembic/versions:/app/alembic/versions
+    networks:
+      - app-network
+    command: ["/bin/sh", "-c", "alembic revision --autogenerate -m \"Migration\" && alembic upgrade head"]
+
+  transaction_service:
+    build:
+      context: ./transaction_service
+    container_name: ${TRANS_SERVICE_HOST}
+    env_file:
+      - .env
+    depends_on:
+      - transaction_db
+      - transaction_migrate
+      - auth_service
+    volumes:
+      - ./logs/transaction_service:${LOGS_DIR}
+    ports:
+      - "${TRANS_SERVICE_PORT}:${TRANS_SERVICE_PORT}"
+    networks:
+      - app-network
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "${TRANS_SERVICE_PORT}"]
 
 volumes:
   auth_db_data:

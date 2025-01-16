@@ -66,7 +66,7 @@ async def login_for_access_token(
 async def change_password(
     password_change: schemas.PasswordChange,
     current_user: models.User = Depends(auth.get_current_user),
-    db: AsyncSession = Depends(get_db)):
+    db: AsyncSession = Depends(get_db)) -> models.User:
     """ Смена пароля """
 
     if not await crud.verify_password(password_change.old_password, current_user.hashed_password):
@@ -78,3 +78,12 @@ async def change_password(
     logger.info("Пароль изменен для пользователя: %s", current_user.username)
 
     return updated_user
+
+@app.post("/verify", response_model=schemas.UserOut)
+async def verify(
+    current_user: models.User = Depends(auth.get_current_user)) -> models.User:
+    """ Проверка пользователя """
+
+    logger.info("Пользователь %s верифицирован", current_user.username)
+
+    return current_user

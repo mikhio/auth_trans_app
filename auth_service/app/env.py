@@ -7,7 +7,7 @@ env_path = os.path.join(os.path.dirname(__file__), '..', '..','.env')
 
 load_dotenv(dotenv_path=env_path)
 
-LOGS_DIR = os.getenv("AUTH_LOGS_DIR", "/app/logs")
+LOGS_DIR = os.getenv("LOGS_DIR", "/app/logs")
 
 DATABASE_URL = os.getenv("AUTH_DATABASE_URL")
 
