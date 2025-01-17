@@ -78,7 +78,7 @@ cd auth_trans_app
 1. **Соберите и запустите контейнеры**
 
     ```bash
-    docker-compose up --build
+    docker compose up --build
     ```
 
     Эта команда соберёт Docker образы для обоих микросервисов, настроит базы данных PostgreSQL и запустит все сервисы.
