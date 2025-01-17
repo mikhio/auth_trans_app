@@ -9,7 +9,7 @@ from .env import DATABASE_URL
 from .logger import logger
 
 
-logger.info("Create async engine to url: %s", DATABASE_URL)
+logger.debug("Create async engine to url: %s", DATABASE_URL)
 
 async_engine = create_async_engine(DATABASE_URL, echo=True)
 

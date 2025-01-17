@@ -7,7 +7,7 @@ from sqlalchemy.orm import sessionmaker
 from .env import DATABASE_URL
 from .logger import logger
 
-logger.info("Создание async engine по URL: %s", DATABASE_URL)
+logger.debug("Create async engine by URL: %s", DATABASE_URL)
 
 async_engine = create_async_engine(DATABASE_URL, echo=True)
 

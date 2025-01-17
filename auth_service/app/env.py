@@ -15,6 +15,8 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM  = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
 
+IS_DEBUG = os.getenv("IS_DEBUG", "0").lower() in ["true", "1"]
+
 
 if not DATABASE_URL:
     raise ValueError("DATA_BASE_URL не установлена в переменных окружения")

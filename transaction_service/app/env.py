@@ -12,6 +12,8 @@ LOGS_DIR = os.getenv("LOGS_DIR", "/app/logs")
 DATABASE_URL = os.getenv("TRANS_DATABASE_URL")
 AUTH_SERVICE_URL = os.getenv("AUTH_SERVICE_URL")
 
+IS_DEBUG = os.getenv("IS_DEBUG", "0").lower() in ["true", "1"]
+
 # Проверка обязательных переменных
 if not DATABASE_URL:
     raise ValueError("TRANS_DATABASE_URL не установлена в переменных окружения")

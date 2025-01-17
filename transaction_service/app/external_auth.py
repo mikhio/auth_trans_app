@@ -15,6 +15,8 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 async def valid_token( token: str = Depends(oauth2_scheme)) -> schemas.User:
     """Запрос к Auth сервису для верификации токена """
 
+    logger.debug("valid_token")
+
     headers = {
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/json"
@@ -30,8 +32,8 @@ async def valid_token( token: str = Depends(oauth2_scheme)) -> schemas.User:
                 username=response.json().get("username"))
 
         except httpx.HTTPStatusError as e:
-            logger.error("Не удалось войти по токену: %s", token)
-            logger.error("HTTPStatusError: %s", e)
+            logger.warning("Не удалось войти по токену")
+            logger.warning("HTTPStatusError: %s", e)
 
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -40,6 +42,8 @@ async def valid_token( token: str = Depends(oauth2_scheme)) -> schemas.User:
 
 async def fetch_user(username: str) -> int:
     """Запрос к Auth сервису для получения информации о пользователе """
+
+    logger.debug("fetch_user: %s", username)
 
     headers = {
         "Content-Type": "application/json"
@@ -56,8 +60,8 @@ async def fetch_user(username: str) -> int:
 
             return response.json().get("id")
         except httpx.HTTPStatusError as e:
-            logger.error("Не удалось найти пользователя %s", username)
-            logger.error("HTTPStatusError: %s", e)
+            logger.warning("Не удалось найти пользователя %s", username)
+            logger.warning("HTTPStatusError: %s", e)
 
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,

@@ -3,13 +3,13 @@
 import os
 import logging
 
-from .env import LOGS_DIR
+from .env import LOGS_DIR, IS_DEBUG
 
 
 os.makedirs(LOGS_DIR, exist_ok=True)
 
 logger = logging.getLogger("transaction_service")
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG if IS_DEBUG else logging.INFO)
 
 log_file = os.path.join(LOGS_DIR, "transaction_service.log")
 

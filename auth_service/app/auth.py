@@ -22,13 +22,15 @@ def create_access_token(
         expires_delta: timedelta = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)) -> str:
     """ Создание токена """
 
+    logger.debug("create_access_token: %s", data)
+
     to_encode = data.copy()
     to_encode["sub"] = str(to_encode["sub"])
 
     expire = datetime.now(timezone.utc) + expires_delta
     to_encode.update({"exp": expire})
 
-    logger.info(to_encode)
+    logger.debug("to_encode: %s", to_encode)
 
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
@@ -39,17 +41,19 @@ async def get_current_user(
         db: AsyncSession = Depends(get_db)) -> models.User:
     """ Получение пользователя по токену """
 
+    logger.debug("get_current_user")
+
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Невалидный токен",
         headers={"WWW-Authenticate": "Bearer"},
     )
 
-    logger.info("Получил token %s", token)
-
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        logger.info("Payload sub: %s", payload.get("sub"))
+
+        logger.debug("Payload: %s", payload)
+
         user_id: int = int(payload.get("sub"))
 
         if user_id is None:
@@ -64,9 +68,11 @@ async def get_current_user(
         raise credentials_exception from e
 
     user = await crud.get_user(db, user_id=token_data.user_id)
+    logger.debug("user: %s", user)
 
     if user is None:
         logger.warning("Пользователь с id=%d не найден", token_data.user_id)
+
         raise credentials_exception
 
     return user

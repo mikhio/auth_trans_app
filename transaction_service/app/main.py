@@ -20,6 +20,12 @@ async def transfer_funds(
 ) -> schemas.TransactionOut:
     """Проведение перевода средств"""
 
+    logger.debug("transfer_funds: %s", transaction)
+    logger.info("Пользователь %s хочет перевести %s пользователю %s",
+                current_user.username,
+                transaction.amount,
+                transaction.receiver_username)
+
     # Проверка регистрации получателя
     reciver_uid = await external_auth.fetch_user(transaction.receiver_username)
 
@@ -29,6 +35,8 @@ async def transfer_funds(
         username=current_user.username)
 
     if not current_account:
+        logger.info("Создание аккаунта пользователю %s", current_user.username)
+
         current_account = await crud.create_account(db, schemas.AccountCreate(
                                     uid=current_user.uid,
                                     username=current_user.username))
@@ -39,13 +47,15 @@ async def transfer_funds(
         username=transaction.receiver_username)
 
     if not receiver:
+        logger.info("Создание аккаунта пользователю %s", receiver.username)
+
         receiver = await crud.create_account(db, schemas.AccountCreate(
                                     uid=reciver_uid,
                                     username=transaction.receiver_username))
 
     # Проверка достаточности средств
     if current_account.balance < transaction.amount:
-        logger.info(
+        logger.warning(
             "Перевод неудачен: недостаточно средств у пользователя %s",
             current_user.username)
 
@@ -73,11 +83,17 @@ async def get_transactions(
 ) -> list[schemas.TransactionOut]:
     """Получение истории транзакций"""
 
+    logger.debug("get_transactions: skip=%s, limit=%s, user=%s",
+                 skip, limit, current_user)
+    logger.info("Пользователь %s запросил историю транзакций", current_user.username)
+
     # Проверка существования пользователя
     current_account: models.Account | None = await crud.get_account_by_username(
         db,
         username=current_user.username)
     if not current_account:
+        logger.warning("Пользователь %s не найден", current_user.username)
+
         raise HTTPException(status_code=404, detail="Пользователь не найден")
 
     transactions: list[models.Transaction] = await crud.get_user_transactions(
@@ -86,6 +102,6 @@ async def get_transactions(
         skip=skip,
         limit=limit)
 
-    logger.info("Пользователь %s запросил историю транзакций", current_account.username)
+    logger.info("Отправили пользователю %s историю транзакций", current_account.username)
 
     return transactions
